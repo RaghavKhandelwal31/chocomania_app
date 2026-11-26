@@ -1,0 +1,47 @@
+{
+  "name": "chocomania-app",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev:client": "vite --port 5173",
+    "dev:worker": "wrangler dev --port 8787",
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src tests",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "deploy:test": "npm run build && wrangler deploy --env test",
+    "deploy:live": "npm run build && wrangler deploy --env live"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.4",
+    "hono": "^4.7.6",
+    "i18next": "^24.2.3",
+    "lucide-react": "^0.487.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-i18next": "^15.4.1",
+    "react-router-dom": "^7.4.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261123.1",
+    "@eslint/js": "^9.23.0",
+    "@tailwindcss/vite": "^4.1.3",
+    "@types/node": "^22.14.0",
+    "@types/react": "^19.0.12",
+    "@types/react-dom": "^19.0.4",
+    "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^9.23.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "supabase": "^2.20.12",
+    "tailwindcss": "^4.1.3",
+    "typescript": "^5.8.2",
+    "typescript-eslint": "^8.29.0",
+    "vite": "^6.2.4",
+    "vite-plugin-pwa": "^0.21.2",
+    "vitest": "^3.1.1",
+    "wrangler": "^4.10.0"
+  }
+}

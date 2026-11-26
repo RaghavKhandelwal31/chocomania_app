@@ -1,0 +1,36 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "chocomania-test",
+  "main": "src/worker/index.ts",
+  "compatibility_date": "2025-11-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "./dist/client",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+  "vars": {
+    "APP_ENV": "test"
+  },
+  "env": {
+    "test": {
+      "name": "chocomania-test",
+      "vars": {
+        "APP_ENV": "test"
+      },
+      "triggers": {
+        "crons": ["30 20 * * *"]
+      }
+    },
+    "live": {
+      "name": "chocomania-live",
+      "vars": {
+        "APP_ENV": "live"
+      },
+      "triggers": {
+        "crons": ["30 20 * * *"]
+      }
+    }
+  }
+}
