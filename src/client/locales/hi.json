@@ -91,7 +91,9 @@
     "notesPlaceholder": "ग्राहक की पसंद या खास बात लिखें...",
     "notesSaved": "नोट्स सेव हो गए!",
     "orderHistory": "ऑर्डर का इतिहास",
-    "notFound": "ग्राहक नहीं मिला।"
+    "notFound": "ग्राहक नहीं मिला।",
+    "sendReminder": "बकाया याद दिलाएं",
+    "reminderTitle": "बकाया पेमेंट रिमाइंडर"
   },
   "dues": {
     "totalOutstanding": "कुल बकाया रकम",
@@ -119,8 +121,10 @@
     "item": "सामान का नाम",
     "itemPlaceholder": "जैसे: चॉकलेट ट्रफल केक",
     "quickItems": "लोकप्रिय आइटम:",
-    "sizeWeight": "साइज / वजन",
-    "sizeWeightPlaceholder": "जैसे: 1 किलो / 500 ग्राम",
+    "sizeWeight": "साइज / वजन (पाउंड)",
+    "sizeWeightPlaceholder": "जैसे: 1 lb / 2 lb",
+    "pieces": "पीस (संख्या)",
+    "piecesPlaceholder": "जैसे: 12 pcs",
     "flavor": "स्वाद (फ्लेवर)",
     "flavorPlaceholder": "जैसे: डार्क चॉकलेट / वैनिला",
     "eggless": "एगलेस (बिना अंडे का)?",

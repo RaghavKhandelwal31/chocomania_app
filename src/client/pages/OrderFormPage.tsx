@@ -45,11 +45,15 @@ export function OrderFormPage() {
 
   const [itemName, setItemName] = useState("");
   const [popularItems, setPopularItems] = useState<string[]>([]);
-  const [sizeWeight, setSizeWeight] = useState("1 kg");
+  const [sizeWeight, setSizeWeight] = useState("1 lb");
+  const [pieces, setPieces] = useState("");
   const [flavor, setFlavor] = useState("");
-  const [isEggless, setIsEggless] = useState(true);
   const [cakeMessage, setCakeMessage] = useState("");
   const [customizationNotes, setCustomizationNotes] = useState("");
+
+  const isChocolateOrCookies =
+    /(chocolate|cookie|truffle|fudge|brownie|चॉकलेट|कुकी)/i.test(itemName) &&
+    !/cake|केक/i.test(itemName);
 
   const [scheduledDate, setScheduledDate] = useState(todayStr);
   const [scheduledSlot, setScheduledSlot] = useState<TimeSlot>("afternoon");
@@ -141,9 +145,18 @@ export function OrderFormPage() {
         setCustomerPhone(order.customerPhone.replace(/^\+91/, ""));
         setCustomerName(order.customerFullName);
         setItemName(order.itemName);
-        setSizeWeight(order.sizeWeight);
+        if (order.sizeWeight.includes("•")) {
+          const [sw, pcs] = order.sizeWeight.split("•").map((s) => s.trim());
+          setSizeWeight(sw || "");
+          setPieces(pcs || "");
+        } else if (/pcs/i.test(order.sizeWeight)) {
+          setSizeWeight("1 lb");
+          setPieces(order.sizeWeight);
+        } else {
+          setSizeWeight(order.sizeWeight);
+          setPieces("");
+        }
         setFlavor(order.flavor);
-        setIsEggless(order.isEggless);
         setCakeMessage(order.cakeMessage);
         setCustomizationNotes(order.customizationNotes);
         setScheduledDate(order.scheduledDate);
@@ -199,7 +212,6 @@ export function OrderFormPage() {
     setItemName(repeatOrderData.itemName);
     setSizeWeight(repeatOrderData.sizeWeight);
     setFlavor(repeatOrderData.flavor);
-    setIsEggless(repeatOrderData.isEggless);
     setFulfillmentType(repeatOrderData.fulfillmentType);
     if (repeatOrderData.deliveryAddress) {
       setDeliveryAddress(repeatOrderData.deliveryAddress);
@@ -229,13 +241,23 @@ export function OrderFormPage() {
 
     setSubmitting(true);
     try {
+      const trimmedPieces = pieces.trim();
+      const trimmedSize = sizeWeight.trim();
+      let finalSizeWeight = trimmedSize;
+      if (isChocolateOrCookies && trimmedPieces) {
+        finalSizeWeight =
+          trimmedSize && trimmedSize !== "1 lb"
+            ? `${trimmedSize} • ${trimmedPieces}`
+            : trimmedPieces;
+      }
+
       const payload = {
         customerName: customerName.trim(),
         customerPhone: customerPhone.trim(),
         itemName: itemName.trim(),
-        sizeWeight: sizeWeight.trim(),
+        sizeWeight: finalSizeWeight,
         flavor: flavor.trim(),
-        isEggless,
+        isEggless: true,
         cakeMessage: cakeMessage.trim(),
         customizationNotes: customizationNotes.trim(),
         internalNotes: internalNotes.trim(),
@@ -456,8 +478,8 @@ export function OrderFormPage() {
                   placeholder={t("orders.sizeWeightPlaceholder")}
                   className="min-h-[56px] w-full rounded-2xl border-2 border-[#CBB8A6] bg-[#FFFDF9] px-3 text-base font-semibold text-[#1F1612] focus:border-[#4A2511] focus:outline-none"
                 />
-                <div className="mt-1 flex gap-1">
-                  {["500g", "1 kg", "1.5 kg", "2 kg"].map((sw) => (
+                <div className="mt-1 flex flex-wrap gap-1">
+                  {["0.5 lb", "1 lb", "1.5 lb", "2 lb"].map((sw) => (
                     <button
                       key={sw}
                       type="button"
@@ -482,41 +504,33 @@ export function OrderFormPage() {
               </div>
             </div>
 
-            {/* Eggless Toggle */}
-            <div>
-              <label className="mb-1 block text-base font-bold text-[#1F1612]">{t("orders.eggless")}</label>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsEggless(true)}
-                  className={`flex min-h-[54px] items-center justify-center gap-2 rounded-2xl border-2 font-extrabold transition ${
-                    isEggless
-                      ? "border-emerald-700 bg-emerald-50 text-emerald-800"
-                      : "border-[#D9C7B8] bg-[#FFFDF9] text-[#6E5444]"
-                  }`}
-                >
-                  <span className="flex h-5 w-5 items-center justify-center rounded-sm border-2 border-emerald-700">
-                    <span className="h-2.5 w-2.5 rounded-full bg-emerald-700" />
-                  </span>
-                  <span>{t("orders.egglessYes")}</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setIsEggless(false)}
-                  className={`flex min-h-[54px] items-center justify-center gap-2 rounded-2xl border-2 font-extrabold transition ${
-                    !isEggless
-                      ? "border-amber-700 bg-amber-50 text-amber-900"
-                      : "border-[#D9C7B8] bg-[#FFFDF9] text-[#6E5444]"
-                  }`}
-                >
-                  <span className="flex h-5 w-5 items-center justify-center rounded-sm border-2 border-amber-700">
-                    <span className="h-2.5 w-2.5 rounded-full bg-amber-700" />
-                  </span>
-                  <span>{t("orders.egglessNo")}</span>
-                </button>
+            {isChocolateOrCookies && (
+              <div>
+                <label htmlFor="piecesInput" className="mb-1 block text-base font-bold text-[#1F1612]">
+                  {t("orders.pieces")}
+                </label>
+                <input
+                  id="piecesInput"
+                  type="text"
+                  value={pieces}
+                  onChange={(e) => setPieces(e.target.value)}
+                  placeholder={t("orders.piecesPlaceholder")}
+                  className="min-h-[56px] w-full rounded-2xl border-2 border-[#CBB8A6] bg-[#FFFDF9] px-4 text-base font-semibold text-[#1F1612] focus:border-[#4A2511] focus:outline-none"
+                />
+                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                  {["6 pcs", "12 pcs", "24 pcs", "36 pcs"].map((pcs) => (
+                    <button
+                      key={pcs}
+                      type="button"
+                      onClick={() => setPieces(pcs)}
+                      className="rounded-lg border border-[#D9C7B8] bg-white px-2.5 py-1 text-xs font-bold text-[#5C4538]"
+                    >
+                      {pcs}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Cake Message */}
             <div>

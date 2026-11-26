@@ -91,7 +91,9 @@
     "notesPlaceholder": "Preferences, allergies, delivery instructions...",
     "notesSaved": "Notes saved!",
     "orderHistory": "Order History",
-    "notFound": "Customer not found."
+    "notFound": "Customer not found.",
+    "sendReminder": "Send Due Reminder",
+    "reminderTitle": "Payment Reminder"
   },
   "dues": {
     "totalOutstanding": "Total Outstanding Dues",
@@ -119,8 +121,10 @@
     "item": "Item Name",
     "itemPlaceholder": "e.g. Chocolate Truffle Cake",
     "quickItems": "Popular items:",
-    "sizeWeight": "Size / Weight",
-    "sizeWeightPlaceholder": "e.g. 1 kg / 500g",
+    "sizeWeight": "Size / Weight (lbs)",
+    "sizeWeightPlaceholder": "e.g. 1 lb / 2 lb",
+    "pieces": "Pieces",
+    "piecesPlaceholder": "e.g. 12 pcs",
     "flavor": "Flavor",
     "flavorPlaceholder": "e.g. Dark Chocolate / Vanilla",
     "eggless": "Eggless?",

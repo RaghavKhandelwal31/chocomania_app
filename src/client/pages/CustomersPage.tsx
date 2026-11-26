@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ChevronRight, Phone, Search, Users } from "lucide-react";
+import { Bell, ChevronRight, Phone, Search, Users } from "lucide-react";
 import { apiRequest } from "../lib/api";
+import { DueReminderModal } from "../components/DueReminderModal";
 import { formatDateDDMMYYYY, formatINR } from "../../shared/format";
 import type { CustomerSummaryDTO } from "../../shared/types";
 
@@ -11,6 +12,7 @@ export function CustomersPage() {
   const [customers, setCustomers] = useState<CustomerSummaryDTO[]>([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const [reminderCustomer, setReminderCustomer] = useState<CustomerSummaryDTO | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -99,9 +101,29 @@ export function CustomersPage() {
                   )}
                 </div>
               </Link>
+
+              {c.duesPaise > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setReminderCustomer(c)}
+                  className="mt-2.5 flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-xl border-2 border-emerald-700 bg-emerald-50 text-sm font-extrabold text-emerald-900 active:scale-95"
+                >
+                  <Bell className="h-4 w-4" />
+                  <span>{t("customers.sendReminder")}</span>
+                </button>
+              )}
             </div>
           ))}
         </div>
+      )}
+
+      {reminderCustomer && (
+        <DueReminderModal
+          customerName={reminderCustomer.fullName}
+          customerPhone={reminderCustomer.phone}
+          duesPaise={reminderCustomer.duesPaise}
+          onClose={() => setReminderCustomer(null)}
+        />
       )}
     </div>
   );

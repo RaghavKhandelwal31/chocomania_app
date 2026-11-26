@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Check, Edit3, Phone, Save } from "lucide-react";
+import { ArrowLeft, Bell, Check, Edit3, Phone, Save } from "lucide-react";
 import { apiRequest } from "../lib/api";
+import { DueReminderModal } from "../components/DueReminderModal";
 import { formatDateDDMMYYYY, formatINR } from "../../shared/format";
 import type { CustomerProfileDTO } from "../../shared/types";
 
@@ -16,6 +17,7 @@ export function CustomerProfilePage() {
   const [loading, setLoading] = useState(true);
   const [savingNotes, setSavingNotes] = useState(false);
   const [notesSaved, setNotesSaved] = useState(false);
+  const [showReminder, setShowReminder] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -113,6 +115,17 @@ export function CustomerProfilePage() {
             </div>
           </div>
         </div>
+
+        {customer.duesPaise > 0 && (
+          <button
+            type="button"
+            onClick={() => setShowReminder(true)}
+            className="mt-4 flex min-h-[50px] w-full items-center justify-center gap-2 rounded-2xl border-2 border-emerald-700 bg-emerald-50 text-base font-extrabold text-emerald-900 active:scale-95"
+          >
+            <Bell className="h-5 w-5" />
+            <span>{t("customers.sendReminder")}</span>
+          </button>
+        )}
       </div>
 
       {/* Editable Private Notes */}
@@ -180,6 +193,15 @@ export function CustomerProfilePage() {
           ))}
         </div>
       </div>
+
+      {showReminder && (
+        <DueReminderModal
+          customerName={customer.fullName}
+          customerPhone={customer.phone}
+          duesPaise={customer.duesPaise}
+          onClose={() => setShowReminder(false)}
+        />
+      )}
     </div>
   );
 }
