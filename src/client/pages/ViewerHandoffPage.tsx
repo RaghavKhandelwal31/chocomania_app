@@ -40,17 +40,17 @@ export function ViewerHomePlaceholder() {
     setError(null);
   };
 
-  const handleConfirmHandoff = async () => {
+  const handleConfirmHandoff = async (payLater = false) => {
     if (!selectedOrder) return;
     setSubmitting(true);
     setError(null);
     try {
-      const paise = Math.round((Number(amountCollectedStr) || 0) * 100);
+      const paise = payLater ? 0 : Math.round((Number(amountCollectedStr) || 0) * 100);
       await apiRequest(`/api/orders/${selectedOrder.id}/handoff`, {
         method: "POST",
         body: JSON.stringify({
           amountCollectedPaise: paise,
-          paymentMode,
+          paymentMode: payLater ? "cash" : paymentMode,
           expectedVersion: selectedOrder.orderVersion,
         }),
       });
@@ -233,9 +233,11 @@ export function ViewerHomePlaceholder() {
               </div>
 
               <div>
-                <label className="block text-base font-black text-[#1F1612]">Payment Mode</label>
-                <div className="mt-1 grid grid-cols-3 gap-2">
-                  {(["cash", "upi", "card"] as PaymentMode[]).map((mode) => (
+                <label className="block text-base font-black text-[#1F1612]">
+                  {t("orders.paymentMode")}
+                </label>
+                <div className="mt-1 grid grid-cols-2 gap-2">
+                  {(["cash", "upi"] as PaymentMode[]).map((mode) => (
                     <button
                       key={mode}
                       type="button"
@@ -248,31 +250,41 @@ export function ViewerHomePlaceholder() {
                     >
                       {mode === "cash" && t("orders.modeCash")}
                       {mode === "upi" && t("orders.modeUpi")}
-                      {mode === "card" && t("orders.modeCard")}
                     </button>
                   ))}
                 </div>
               </div>
             </div>
 
-            <div className="mt-6 grid grid-cols-2 gap-3">
+            <div className="mt-5 space-y-3">
               <button
                 type="button"
                 disabled={submitting}
-                onClick={() => setSelectedOrder(null)}
-                className="min-h-[56px] rounded-2xl border-2 border-[#D9C7B8] font-black text-[#6E5444] active:scale-95"
+                onClick={() => void handleConfirmHandoff(true)}
+                className="min-h-[58px] w-full rounded-2xl border-2 border-amber-600 bg-amber-50 text-xl font-black text-amber-950 active:scale-95 disabled:opacity-60"
               >
-                {t("common.cancel")}
+                {t("orders.willPayLater")}
               </button>
 
-              <button
-                type="button"
-                disabled={submitting}
-                onClick={() => void handleConfirmHandoff()}
-                className="min-h-[56px] rounded-2xl bg-emerald-700 font-black text-white shadow-md active:scale-95 disabled:opacity-60"
-              >
-                {submitting ? t("common.loading") : t("common.confirm")}
-              </button>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  disabled={submitting}
+                  onClick={() => setSelectedOrder(null)}
+                  className="min-h-[56px] rounded-2xl border-2 border-[#D9C7B8] font-black text-[#6E5444] active:scale-95"
+                >
+                  {t("common.cancel")}
+                </button>
+
+                <button
+                  type="button"
+                  disabled={submitting}
+                  onClick={() => void handleConfirmHandoff(false)}
+                  className="min-h-[56px] rounded-2xl bg-emerald-700 font-black text-white shadow-md active:scale-95 disabled:opacity-60"
+                >
+                  {submitting ? t("common.loading") : t("common.confirm")}
+                </button>
+              </div>
             </div>
           </div>
         </div>

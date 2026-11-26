@@ -92,17 +92,17 @@ export function OwnerOrdersPage() {
     setHandoffError(null);
   };
 
-  const handleConfirmHandoff = async () => {
+  const handleConfirmHandoff = async (payLater = false) => {
     if (!handoffOrder) return;
     setHandoffSubmitting(true);
     setHandoffError(null);
     try {
-      const paise = Math.round((Number(amountCollectedStr) || 0) * 100);
+      const paise = payLater ? 0 : Math.round((Number(amountCollectedStr) || 0) * 100);
       await apiRequest(`/api/orders/${handoffOrder.id}/handoff`, {
         method: "POST",
         body: JSON.stringify({
           amountCollectedPaise: paise,
-          paymentMode,
+          paymentMode: payLater ? "cash" : paymentMode,
           expectedVersion: handoffOrder.orderVersion,
         }),
       });
@@ -452,13 +452,13 @@ export function OwnerOrdersPage() {
                 <label className="block text-base font-black text-[#1F1612]">
                   {t("orders.paymentMode")}
                 </label>
-                <div className="mt-1 grid grid-cols-4 gap-2">
-                  {(["cash", "upi", "card", "bank_transfer"] as PaymentMode[]).map((mode) => (
+                <div className="mt-1 grid grid-cols-2 gap-2">
+                  {(["cash", "upi"] as PaymentMode[]).map((mode) => (
                     <button
                       key={mode}
                       type="button"
                       onClick={() => setPaymentMode(mode)}
-                      className={`min-h-[48px] rounded-xl border-2 px-1 text-xs font-black transition ${
+                      className={`min-h-[48px] rounded-xl border-2 px-2 text-sm font-black transition ${
                         paymentMode === mode
                           ? "border-[#4A2511] bg-[#4A2511] text-white"
                           : "border-[#D9C7B8] bg-[#FFFDF9] text-[#5C4538]"
@@ -466,31 +466,40 @@ export function OwnerOrdersPage() {
                     >
                       {mode === "cash" && t("orders.modeCash")}
                       {mode === "upi" && t("orders.modeUpi")}
-                      {mode === "card" && t("orders.modeCard")}
-                      {mode === "bank_transfer" && t("orders.modeBank")}
                     </button>
                   ))}
                 </div>
               </div>
             </div>
 
-            <div className="mt-6 grid grid-cols-2 gap-3">
+            <div className="mt-5 space-y-2.5">
               <button
                 type="button"
                 disabled={handoffSubmitting}
-                onClick={() => setHandoffOrder(null)}
-                className="min-h-[54px] rounded-2xl border-2 border-[#D9C7B8] font-black text-[#6E5444] active:scale-95"
+                onClick={() => void handleConfirmHandoff(true)}
+                className="min-h-[52px] w-full rounded-2xl border-2 border-amber-600 bg-amber-50 text-base font-black text-amber-950 active:scale-95 disabled:opacity-60"
               >
-                {t("common.cancel")}
+                {t("orders.willPayLater")}
               </button>
-              <button
-                type="button"
-                disabled={handoffSubmitting}
-                onClick={() => void handleConfirmHandoff()}
-                className="min-h-[54px] rounded-2xl bg-emerald-700 font-black text-white shadow-md active:scale-95 disabled:opacity-60"
-              >
-                {handoffSubmitting ? t("common.loading") : t("common.confirm")}
-              </button>
+
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  disabled={handoffSubmitting}
+                  onClick={() => setHandoffOrder(null)}
+                  className="min-h-[54px] rounded-2xl border-2 border-[#D9C7B8] font-black text-[#6E5444] active:scale-95"
+                >
+                  {t("common.cancel")}
+                </button>
+                <button
+                  type="button"
+                  disabled={handoffSubmitting}
+                  onClick={() => void handleConfirmHandoff(false)}
+                  className="min-h-[54px] rounded-2xl bg-emerald-700 font-black text-white shadow-md active:scale-95 disabled:opacity-60"
+                >
+                  {handoffSubmitting ? t("common.loading") : t("common.confirm")}
+                </button>
+              </div>
             </div>
           </div>
         </div>
