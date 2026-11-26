@@ -3,46 +3,44 @@ import type { OwnerOrderDTO } from "../../shared/types";
 export function buildNotifyMessage(order: OwnerOrderDTO): string {
   const remainingRupees = Number((order.balanceDuePaise / 100).toFixed(2));
   if (remainingRupees > 0) {
-    const upiLink = `upi://pay?pa=7000671411@icici&am=${remainingRupees}&cu=INR&tn=${encodeURIComponent(order.itemName)}`;
     return [
-      `Hello ${order.customerFullName}! 👋`,
+      "Hey! Your Chocomania order is ready 🎂✨",
       "",
-      "Your order is ready! 🎉",
+      "Just sharing the order value and UPI link here for your reference",
+      `₹${remainingRupees}`,
+      "chocomania@ybl",
       "",
-      `Amount to pay: ₹${remainingRupees}`,
+      "You can pay now, or while collecting your cake, whichever is easier for you.",
       "",
-      "You can pay securely using the link below:",
-      "",
-      `👉 ${upiLink}`,
-      "",
-      "Thank you for ordering! 🍫",
+      "Thank you for choosing us! 🍫",
+      "Visit chocomania.in to explore more treats and share your feedback.",
     ].join("\n");
   }
   return [
-    `Hello ${order.customerFullName}! 👋`,
+    "Hey! Your Chocomania order is ready 🎂✨",
     "",
-    `Your order (#${order.orderNumber} - ${order.itemName}) is ready! 🎉`,
+    `Your ${order.itemName} is ready!`,
     "",
-    "Thank you for ordering! 🍫",
+    "Thank you for choosing us! 🍫",
+    "Visit chocomania.in to explore more treats and share your feedback.",
   ].join("\n");
 }
 
 export function buildCustomerDueReminderMessage(
-  customerFullName: string,
+  _customerFullName: string,
   duesPaise: number,
 ): string {
   const dueRupees = Number((duesPaise / 100).toFixed(2));
-  const upiLink = `upi://pay?pa=7000671411@icici&am=${dueRupees}&cu=INR&tn=${encodeURIComponent("Remaining Balance")}`;
   return [
-    `Hello ${customerFullName}! 👋`,
+    "Hey! Hope you enjoyed your Chocomania order! We'd love to know how you liked it ✨",
     "",
-    "This is a gentle reminder about your pending payment.",
+    "Just sharing the order value and UPI link here for your reference",
+    `₹${dueRupees}`,
     "",
-    `Total due amount: ₹${dueRupees}`,
+    "chocomania@ybl",
     "",
-    "You can clear it easily using the link below:",
-    "",
-    `👉 ${upiLink}`,
+    "Thank you for choosing us! 🍫",
+    "Visit chocomania.in to explore more treats and share your feedback.",
   ].join("\n");
 }
 

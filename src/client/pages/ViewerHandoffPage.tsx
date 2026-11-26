@@ -2,8 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CheckCircle2, Phone, RotateCcw, ShoppingBag } from "lucide-react";
 import { apiRequest } from "../lib/api";
+import { HandoffModal } from "../components/HandoffModal";
 import { formatINR } from "../../shared/format";
-import type { PaymentMode, ViewerHandoffOrderDTO } from "../../shared/types";
+import type { ViewerHandoffOrderDTO } from "../../shared/types";
 
 export function ViewerHomePlaceholder() {
   const { t } = useTranslation();
@@ -11,10 +12,6 @@ export function ViewerHomePlaceholder() {
   const [orders, setOrders] = useState<ViewerHandoffOrderDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<ViewerHandoffOrderDTO | null>(null);
-  const [amountCollectedStr, setAmountCollectedStr] = useState("");
-  const [paymentMode, setPaymentMode] = useState<PaymentMode>("cash");
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [lastHandoffId, setLastHandoffId] = useState<string | null>(null);
   const [undoSuccess, setUndoSuccess] = useState(false);
 
@@ -32,39 +29,6 @@ export function ViewerHomePlaceholder() {
   useEffect(() => {
     void fetchOrders();
   }, []);
-
-  const openHandoffModal = (order: ViewerHandoffOrderDTO) => {
-    setSelectedOrder(order);
-    setAmountCollectedStr(String(order.amountToCollectPaise / 100));
-    setPaymentMode("cash");
-    setError(null);
-  };
-
-  const handleConfirmHandoff = async (payLater = false) => {
-    if (!selectedOrder) return;
-    setSubmitting(true);
-    setError(null);
-    try {
-      const paise = payLater ? 0 : Math.round((Number(amountCollectedStr) || 0) * 100);
-      await apiRequest(`/api/orders/${selectedOrder.id}/handoff`, {
-        method: "POST",
-        body: JSON.stringify({
-          amountCollectedPaise: paise,
-          paymentMode: payLater ? "cash" : paymentMode,
-          expectedVersion: selectedOrder.orderVersion,
-        }),
-      });
-
-      setLastHandoffId(selectedOrder.id);
-      setSelectedOrder(null);
-      await fetchOrders();
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : t("common.errorGeneric");
-      setError(msg);
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   const handleUndo = async () => {
     if (!lastHandoffId) return;
@@ -194,11 +158,11 @@ export function ViewerHomePlaceholder() {
               {/* Big Handed Off Button */}
               <button
                 type="button"
-                onClick={() => openHandoffModal(order)}
+                onClick={() => setSelectedOrder(order)}
                 className="flex min-h-[64px] w-full items-center justify-center gap-3 rounded-2xl bg-[#4A2511] text-2xl font-black text-white shadow-lg active:scale-[0.98]"
               >
                 <CheckCircle2 className="h-8 w-8" />
-                <span>{t("orders.statusHandedOff")}</span>
+                <span>{t("orders.handOff")}</span>
               </button>
             </div>
           ))}
@@ -207,87 +171,23 @@ export function ViewerHomePlaceholder() {
 
       {/* Confirmation Modal */}
       {selectedOrder && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 sm:items-center">
-          <div className="w-full max-w-lg rounded-3xl border-4 border-[#4A2511] bg-white p-6 shadow-2xl">
-            <h2 className="text-2xl font-black text-[#4A2511]">Confirm Handoff</h2>
-            <p className="mt-1 font-bold text-[#6E5444]">
-              Order #{selectedOrder.orderNumber} • {selectedOrder.customerFullName}
-            </p>
-
-            {error && (
-              <div className="mt-3 rounded-xl border-2 border-red-300 bg-red-50 p-3 text-base font-bold text-red-900">
-                {error}
-              </div>
-            )}
-
-            <div className="mt-5 space-y-4">
-              <div>
-                <label className="block text-lg font-black text-[#1F1612]">Amount Collected (₹)</label>
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  value={amountCollectedStr}
-                  onChange={(e) => setAmountCollectedStr(e.target.value)}
-                  className="mt-1 min-h-[60px] w-full rounded-2xl border-4 border-[#CBB8A6] px-4 text-3xl font-black text-[#1F1612] focus:border-[#4A2511] focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-base font-black text-[#1F1612]">
-                  {t("orders.paymentMode")}
-                </label>
-                <div className="mt-1 grid grid-cols-2 gap-2">
-                  {(["cash", "upi"] as PaymentMode[]).map((mode) => (
-                    <button
-                      key={mode}
-                      type="button"
-                      onClick={() => setPaymentMode(mode)}
-                      className={`min-h-[54px] rounded-2xl border-2 font-black transition ${
-                        paymentMode === mode
-                          ? "border-[#4A2511] bg-[#4A2511] text-white"
-                          : "border-[#D9C7B8] bg-[#FFFDF9] text-[#5C4538]"
-                      }`}
-                    >
-                      {mode === "cash" && t("orders.modeCash")}
-                      {mode === "upi" && t("orders.modeUpi")}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-5 space-y-3">
-              <button
-                type="button"
-                disabled={submitting}
-                onClick={() => void handleConfirmHandoff(true)}
-                className="min-h-[58px] w-full rounded-2xl border-2 border-amber-600 bg-amber-50 text-xl font-black text-amber-950 active:scale-95 disabled:opacity-60"
-              >
-                {t("orders.willPayLater")}
-              </button>
-
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  disabled={submitting}
-                  onClick={() => setSelectedOrder(null)}
-                  className="min-h-[56px] rounded-2xl border-2 border-[#D9C7B8] font-black text-[#6E5444] active:scale-95"
-                >
-                  {t("common.cancel")}
-                </button>
-
-                <button
-                  type="button"
-                  disabled={submitting}
-                  onClick={() => void handleConfirmHandoff(false)}
-                  className="min-h-[56px] rounded-2xl bg-emerald-700 font-black text-white shadow-md active:scale-95 disabled:opacity-60"
-                >
-                  {submitting ? t("common.loading") : t("common.confirm")}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <HandoffModal
+          large={largeText}
+          order={{
+            id: selectedOrder.id,
+            orderNumber: selectedOrder.orderNumber,
+            customerFullName: selectedOrder.customerFullName,
+            itemName: selectedOrder.itemName,
+            orderVersion: selectedOrder.orderVersion,
+            balanceDuePaise: selectedOrder.amountToCollectPaise,
+          }}
+          onClose={() => setSelectedOrder(null)}
+          onSuccess={async (orderId) => {
+            setLastHandoffId(orderId);
+            setSelectedOrder(null);
+            await fetchOrders();
+          }}
+        />
       )}
     </div>
   );

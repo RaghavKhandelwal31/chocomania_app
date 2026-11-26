@@ -20,8 +20,9 @@ import {
 } from "lucide-react";
 import { apiRequest } from "../lib/api";
 import { buildNotifyMessage, buildWhatsappUrl } from "../lib/notify";
+import { HandoffModal } from "../components/HandoffModal";
 import { formatDateDDMMYYYY, formatINR, formatTime12h } from "../../shared/format";
-import type { OrderStatus, OwnerOrderDTO, PaymentMode } from "../../shared/types";
+import type { OrderStatus, OwnerOrderDTO } from "../../shared/types";
 
 type FilterTab = "all" | "draft" | "sent_to_worker" | "completed" | "handed_off";
 
@@ -35,10 +36,6 @@ export function OwnerOrdersPage() {
 
   // Handoff modal state
   const [handoffOrder, setHandoffOrder] = useState<OwnerOrderDTO | null>(null);
-  const [amountCollectedStr, setAmountCollectedStr] = useState("");
-  const [paymentMode, setPaymentMode] = useState<PaymentMode>("cash");
-  const [handoffError, setHandoffError] = useState<string | null>(null);
-  const [handoffSubmitting, setHandoffSubmitting] = useState(false);
   const [lastHandoffId, setLastHandoffId] = useState<string | null>(null);
 
   // Notify modal state
@@ -82,37 +79,6 @@ export function OwnerOrdersPage() {
       // Handle error
     } finally {
       setActionInProgress(null);
-    }
-  };
-
-  const openHandoffModal = (order: OwnerOrderDTO) => {
-    setHandoffOrder(order);
-    setAmountCollectedStr(String(order.balanceDuePaise / 100));
-    setPaymentMode("cash");
-    setHandoffError(null);
-  };
-
-  const handleConfirmHandoff = async (payLater = false) => {
-    if (!handoffOrder) return;
-    setHandoffSubmitting(true);
-    setHandoffError(null);
-    try {
-      const paise = payLater ? 0 : Math.round((Number(amountCollectedStr) || 0) * 100);
-      await apiRequest(`/api/orders/${handoffOrder.id}/handoff`, {
-        method: "POST",
-        body: JSON.stringify({
-          amountCollectedPaise: paise,
-          paymentMode: payLater ? "cash" : paymentMode,
-          expectedVersion: handoffOrder.orderVersion,
-        }),
-      });
-      setLastHandoffId(handoffOrder.id);
-      setHandoffOrder(null);
-      await fetchOrders();
-    } catch (err: unknown) {
-      setHandoffError(err instanceof Error ? err.message : t("common.errorGeneric"));
-    } finally {
-      setHandoffSubmitting(false);
     }
   };
 
@@ -404,7 +370,7 @@ export function OwnerOrdersPage() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => openHandoffModal(order)}
+                        onClick={() => setHandoffOrder(order)}
                         className="flex min-h-[46px] flex-1 items-center justify-center gap-1.5 rounded-xl bg-[#4A2511] px-3 text-sm font-extrabold text-white shadow-sm active:scale-95"
                       >
                         <CheckCircle2 className="h-4 w-4" />
@@ -421,88 +387,15 @@ export function OwnerOrdersPage() {
 
       {/* Handoff Confirmation Modal */}
       {handoffOrder && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 sm:items-center">
-          <div className="w-full max-w-lg rounded-3xl border-4 border-[#4A2511] bg-white p-6 shadow-2xl">
-            <h2 className="text-2xl font-black text-[#4A2511]">{t("orders.confirmHandoff")}</h2>
-            <p className="mt-1 font-bold text-[#6E5444]">
-              #{handoffOrder.orderNumber} • {handoffOrder.customerFullName}
-            </p>
-
-            {handoffError && (
-              <div className="mt-3 rounded-xl border-2 border-red-300 bg-red-50 p-3 text-sm font-bold text-red-900">
-                {handoffError}
-              </div>
-            )}
-
-            <div className="mt-5 space-y-4">
-              <div>
-                <label className="block text-base font-black text-[#1F1612]">
-                  {t("orders.amountCollected")}
-                </label>
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  value={amountCollectedStr}
-                  onChange={(e) => setAmountCollectedStr(e.target.value)}
-                  className="mt-1 min-h-[58px] w-full rounded-2xl border-2 border-[#CBB8A6] px-4 text-2xl font-black text-[#1F1612] focus:border-[#4A2511] focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-base font-black text-[#1F1612]">
-                  {t("orders.paymentMode")}
-                </label>
-                <div className="mt-1 grid grid-cols-2 gap-2">
-                  {(["cash", "upi"] as PaymentMode[]).map((mode) => (
-                    <button
-                      key={mode}
-                      type="button"
-                      onClick={() => setPaymentMode(mode)}
-                      className={`min-h-[48px] rounded-xl border-2 px-2 text-sm font-black transition ${
-                        paymentMode === mode
-                          ? "border-[#4A2511] bg-[#4A2511] text-white"
-                          : "border-[#D9C7B8] bg-[#FFFDF9] text-[#5C4538]"
-                      }`}
-                    >
-                      {mode === "cash" && t("orders.modeCash")}
-                      {mode === "upi" && t("orders.modeUpi")}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-5 space-y-2.5">
-              <button
-                type="button"
-                disabled={handoffSubmitting}
-                onClick={() => void handleConfirmHandoff(true)}
-                className="min-h-[52px] w-full rounded-2xl border-2 border-amber-600 bg-amber-50 text-base font-black text-amber-950 active:scale-95 disabled:opacity-60"
-              >
-                {t("orders.willPayLater")}
-              </button>
-
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  disabled={handoffSubmitting}
-                  onClick={() => setHandoffOrder(null)}
-                  className="min-h-[54px] rounded-2xl border-2 border-[#D9C7B8] font-black text-[#6E5444] active:scale-95"
-                >
-                  {t("common.cancel")}
-                </button>
-                <button
-                  type="button"
-                  disabled={handoffSubmitting}
-                  onClick={() => void handleConfirmHandoff(false)}
-                  className="min-h-[54px] rounded-2xl bg-emerald-700 font-black text-white shadow-md active:scale-95 disabled:opacity-60"
-                >
-                  {handoffSubmitting ? t("common.loading") : t("common.confirm")}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <HandoffModal
+          order={handoffOrder}
+          onClose={() => setHandoffOrder(null)}
+          onSuccess={async (orderId) => {
+            setLastHandoffId(orderId);
+            setHandoffOrder(null);
+            await fetchOrders();
+          }}
+        />
       )}
 
       {/* Notify Customer Modal */}

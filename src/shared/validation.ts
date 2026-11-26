@@ -13,11 +13,9 @@ import {
  * Accepts 10 digits (starting 6-9), or with leading 0 / +91 / spaces / hyphens.
  */
 export function normalizeIndianPhone(raw: string): string | null {
-  const cleaned = raw.replace(/[\s\-()]/g, "");
-  let digits = cleaned;
-  if (digits.startsWith("+91")) {
-    digits = digits.slice(3);
-  } else if (digits.startsWith("91") && digits.length === 12) {
+  // Strip all non-digits (handles spaces, hyphens, parentheses, +91, and WhatsApp invisible marks)
+  let digits = raw.replace(/\D/g, "");
+  if (digits.startsWith("91") && digits.length === 12) {
     digits = digits.slice(2);
   } else if (digits.startsWith("0") && digits.length === 11) {
     digits = digits.slice(1);

@@ -31,12 +31,12 @@ ordersRoutes.get("/", async (c) => {
   const adminClient = createAdminClient(c.env);
 
   // 1. WORKER ROLE: Strictly isolated WorkerOrderDTO[]
-  // NO prices, NO payments, NO phone numbers, NO customer full name (first name only), NO delivery address, NO internal notes.
+  // NO prices, NO payments, NO phone numbers, NO customer name, NO delivery address, NO internal notes.
   if (user.role === "worker") {
     const { data: rows, error } = await adminClient
       .from("orders")
       .select(
-        "id, order_number, customer_first_name, status, item_name, size_weight, flavor, is_eggless, cake_message, customization_notes, scheduled_date, scheduled_time, scheduled_slot, fulfillment_type, order_version, worker_seen_version, updated_at",
+        "id, order_number, status, item_name, size_weight, flavor, is_eggless, cake_message, customization_notes, scheduled_date, scheduled_time, scheduled_slot, fulfillment_type, order_version, worker_seen_version, updated_at",
       )
       .is("deleted_at", null)
       .not("sent_to_worker_at", "is", null)
@@ -51,7 +51,7 @@ ordersRoutes.get("/", async (c) => {
     const workerOrders: WorkerOrderDTO[] = (rows ?? []).map((r) => ({
       id: r.id as string,
       orderNumber: r.order_number as number,
-      customerFirstName: r.customer_first_name as string,
+      customerFirstName: "",
       status: r.status as WorkerOrderDTO["status"],
       itemName: r.item_name as string,
       sizeWeight: (r.size_weight as string) || "",

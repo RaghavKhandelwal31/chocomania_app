@@ -14,6 +14,8 @@ describe("Indian phone normalization", () => {
   it("accepts 10-digit numbers and formats as +91", () => {
     expect(normalizeIndianPhone("9876543210")).toBe("+919876543210");
     expect(normalizeIndianPhone("+91 98765-43210")).toBe("+919876543210");
+    expect(normalizeIndianPhone("+91  98765 43210")).toBe("+919876543210");
+    expect(normalizeIndianPhone("\u202a+91\u00a098765 43210\u202c")).toBe("+919876543210");
     expect(normalizeIndianPhone("09876543210")).toBe("+919876543210");
   });
 

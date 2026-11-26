@@ -177,8 +177,8 @@ export function OrderFormPage() {
   // Customer phone auto-lookup (only in create mode)
   useEffect(() => {
     if (isEditMode) return;
-    const digits = customerPhone.replace(/\D/g, "");
-    if (digits.length === 10) {
+    const normalizedPhone = normalizeIndianPhone(customerPhone);
+    if (normalizedPhone) {
       apiRequest<{
         customer: {
           id: string;
@@ -192,7 +192,7 @@ export function OrderFormPage() {
             deliveryAddress: string;
           } | null;
         } | null;
-      }>(`/api/orders/customer-lookup?phone=${digits}`)
+      }>(`/api/orders/customer-lookup?phone=${encodeURIComponent(normalizedPhone)}`)
         .then((res) => {
           if (res.customer) {
             setCustomerName(res.customer.fullName);

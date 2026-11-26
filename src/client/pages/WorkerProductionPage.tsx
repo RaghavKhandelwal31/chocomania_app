@@ -136,15 +136,12 @@ export function WorkerProductionPage() {
                   isToday ? "border-amber-400 ring-2 ring-amber-100" : "border-[#E7D8C9]"
                 }`}
               >
-                {/* Header: Order #, Customer First Name, Badge */}
+                {/* Header: Order #, Scheduled Date/Time */}
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-xl font-extrabold text-[#4A2511]">
                         #{order.orderNumber}
-                      </span>
-                      <span className="text-lg font-bold text-[#1F1612]">
-                        {order.customerFirstName}
                       </span>
                     </div>
 
@@ -250,7 +247,7 @@ export function WorkerProductionPage() {
                 className="flex items-center justify-between rounded-2xl border border-[#D9C7B8] bg-white p-3 text-sm font-bold text-[#5C4538]"
               >
                 <span>
-                  #{o.orderNumber} {o.itemName} ({o.customerFirstName})
+                  #{o.orderNumber} {o.itemName}
                 </span>
                 <span className="text-emerald-700">✓ Done</span>
               </div>
