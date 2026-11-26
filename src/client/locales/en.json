@@ -70,7 +70,39 @@
     "textSize": "Text Size",
     "textNormal": "A",
     "textLarge": "A+",
-    "noOrdersYet": "No orders waiting right now."
+    "noOrdersYet": "No orders waiting right now.",
+    "statToday": "Today's Orders",
+    "statWorkshop": "In Workshop",
+    "statReady": "Ready for Handoff",
+    "statDues": "Total Dues",
+    "readySectionTitle": "Ready for Handoff",
+    "todaySectionTitle": "Today's Schedule",
+    "viewAll": "View All",
+    "noTodayOrders": "No orders scheduled for today."
+  },
+  "customers": {
+    "title": "Customers",
+    "subtitle": "Search customers, view order history, dues, and notes.",
+    "searchPlaceholder": "Search by name or phone number...",
+    "empty": "No customers found.",
+    "ordersCount": "{{count}} order(s)",
+    "spent": "Spent",
+    "privateNotes": "Private Bakery Notes",
+    "notesPlaceholder": "Preferences, allergies, delivery instructions...",
+    "notesSaved": "Notes saved!",
+    "orderHistory": "Order History",
+    "notFound": "Customer not found."
+  },
+  "dues": {
+    "totalOutstanding": "Total Outstanding Dues",
+    "ordersPending": "{{count}} order(s) with pending balance",
+    "allClear": "All paid! No pending dues right now.",
+    "recordPayment": "Record Payment"
+  },
+  "reports": {
+    "orderValue": "Total Order Value (excl. cancelled)",
+    "moneyCollected": "Money Collected",
+    "comingPhase6": "Weekly & monthly charts, top items, and CSV export are coming in Phase 6."
   },
   "orders": {
     "newOrderTitle": "New Cake / Chocolate Order",
@@ -80,6 +112,8 @@
     "customerPhonePlaceholder": "e.g. 9876543210",
     "customerName": "Customer Name",
     "customerNamePlaceholder": "e.g. Priya Sharma",
+    "pickContact": "Import from Contacts",
+    "phonebookFallbackHint": "Phone contact picker is supported on Android Chrome. Showing saved customers instead.",
     "repeatOrderBtn": "Repeat Previous Order",
     "orderDetailsSection": "2. Cake / Item Details",
     "item": "Item Name",

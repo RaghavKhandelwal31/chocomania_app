@@ -19,19 +19,11 @@ import {
   ShoppingBag,
 } from "lucide-react";
 import { apiRequest } from "../lib/api";
+import { buildNotifyMessage, buildWhatsappUrl } from "../lib/notify";
 import { formatDateDDMMYYYY, formatINR, formatTime12h } from "../../shared/format";
 import type { OrderStatus, OwnerOrderDTO, PaymentMode } from "../../shared/types";
 
 type FilterTab = "all" | "draft" | "sent_to_worker" | "completed" | "handed_off";
-
-function buildNotifyMessage(order: OwnerOrderDTO): string {
-  const remainingRupees = Number((order.balanceDuePaise / 100).toFixed(2));
-  if (remainingRupees > 0) {
-    const upiLink = `upi://pay?pa=7000671411@icici&am=${remainingRupees}&cu=INR&tn=${encodeURIComponent(order.customerFullName)}`;
-    return `Hey ${order.customerFullName}, your order is ready. The amount is ₹${remainingRupees}. You can pay now by clicking at the below link:\n${upiLink}`;
-  }
-  return `Hey ${order.customerFullName}, your order (#${order.orderNumber} - ${order.itemName}) is ready!`;
-}
 
 export function OwnerOrdersPage() {
   const { t } = useTranslation();
@@ -522,7 +514,7 @@ export function OwnerOrdersPage() {
 
             <div className="mt-4 space-y-2.5">
               <a
-                href={`https://wa.me/${notifyOrder.customerPhone.replace(/\D/g, "")}?text=${encodeURIComponent(notifyMessage)}`}
+                href={buildWhatsappUrl(notifyOrder.customerPhone, notifyMessage)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex min-h-[56px] w-full items-center justify-center gap-2 rounded-2xl bg-emerald-700 text-lg font-black text-white shadow-md active:scale-95"

@@ -7,7 +7,12 @@ import { LoginPage } from "./pages/LoginPage";
 import { ForcePasswordChangePage } from "./pages/ForcePasswordChangePage";
 import { AdminPage } from "./pages/AdminPage";
 import { OrderFormPage } from "./pages/OrderFormPage";
+import { OwnerHomePage } from "./pages/OwnerHomePage";
 import { OwnerOrdersPage } from "./pages/OwnerOrdersPage";
+import { CustomersPage } from "./pages/CustomersPage";
+import { CustomerProfilePage } from "./pages/CustomerProfilePage";
+import { DuesPage } from "./pages/DuesPage";
+import { ReportsPlaceholderPage } from "./pages/ReportsPlaceholderPage";
 import { WorkerProductionPage } from "./pages/WorkerProductionPage";
 import { ViewerHomePlaceholder } from "./pages/ViewerHandoffPage";
 
@@ -55,13 +60,14 @@ function AuthenticatedRouter() {
   return (
     <AppShell>
       <Routes>
-        <Route path="/" element={<OwnerOrdersPage />} />
+        <Route path="/" element={<OwnerHomePage />} />
         <Route path="/orders" element={<OwnerOrdersPage />} />
         <Route path="/orders/new" element={<OrderFormPage />} />
         <Route path="/orders/:id/edit" element={<OrderFormPage />} />
-        <Route path="/customers" element={<OwnerOrdersPage />} />
-        <Route path="/dues" element={<OwnerOrdersPage />} />
-        <Route path="/reports" element={<OwnerOrdersPage />} />
+        <Route path="/customers" element={<CustomersPage />} />
+        <Route path="/customers/:id" element={<CustomerProfilePage />} />
+        <Route path="/dues" element={<DuesPage />} />
+        <Route path="/reports" element={<ReportsPlaceholderPage />} />
         {user.role === "admin" && <Route path="/admin" element={<AdminPage />} />}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

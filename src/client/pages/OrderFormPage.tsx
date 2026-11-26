@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Calendar, Check, Clock, RotateCcw, Send, Sparkles, XCircle } from "lucide-react";
+import { ArrowLeft, BookUser, Calendar, Check, Clock, RotateCcw, Send, Sparkles, XCircle } from "lucide-react";
 import { apiRequest } from "../lib/api";
 import { addDaysYYYYMMDD, formatINR, getTodayIST } from "../../shared/format";
+import { normalizeIndianPhone } from "../../shared/validation";
 import type {
+  CustomerSummaryDTO,
   FulfillmentType,
   OrderSource,
   OrderStatus,
@@ -64,6 +66,55 @@ export function OrderFormPage() {
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [contactHint, setContactHint] = useState<string | null>(null);
+  const [showSavedPicker, setShowSavedPicker] = useState(false);
+  const [savedCustomers, setSavedCustomers] = useState<CustomerSummaryDTO[]>([]);
+
+  const handlePickFromPhonebook = async () => {
+    setContactHint(null);
+    const nav = navigator as Navigator & {
+      contacts?: {
+        select: (
+          props: string[],
+          opts?: { multiple?: boolean },
+        ) => Promise<Array<{ name?: string[]; tel?: string[] }>>;
+      };
+    };
+
+    if (nav.contacts && typeof nav.contacts.select === "function") {
+      try {
+        const results = await nav.contacts.select(["name", "tel"], { multiple: false });
+        const picked = results?.[0];
+        if (picked) {
+          if (picked.name?.[0]) {
+            setCustomerName(picked.name[0].trim());
+          }
+          if (picked.tel?.[0]) {
+            const normalized = normalizeIndianPhone(picked.tel[0]);
+            if (normalized) {
+              setCustomerPhone(normalized.replace(/^\+91/, ""));
+            } else {
+              setCustomerPhone(picked.tel[0].replace(/[^\d+]/g, ""));
+            }
+          }
+        }
+        return;
+      } catch (err: unknown) {
+        // User cancelled or picker blocked; fall through to saved customers if not AbortError
+        if (err instanceof Error && err.name === "AbortError") return;
+      }
+    }
+
+    // Fallback when phone Contact Picker API is unavailable (e.g., desktop / iOS Safari)
+    setContactHint(t("orders.phonebookFallbackHint"));
+    try {
+      const res = await apiRequest<{ customers: CustomerSummaryDTO[] }>("/api/customers");
+      setSavedCustomers(res.customers || []);
+      setShowSavedPicker(true);
+    } catch {
+      // Ignore
+    }
+  };
 
   // Load popular item chips
   useEffect(() => {
@@ -294,15 +345,29 @@ export function OrderFormPage() {
               <label htmlFor="customerName" className="mb-1 block text-base font-bold text-[#1F1612]">
                 {t("orders.customerName")} <span className="text-red-600">*</span>
               </label>
-              <input
-                id="customerName"
-                type="text"
-                required
-                value={customerName}
-                onChange={(e) => setCustomerName(e.target.value)}
-                placeholder={t("orders.customerNamePlaceholder")}
-                className="min-h-[56px] w-full rounded-2xl border-2 border-[#CBB8A6] bg-[#FFFDF9] px-4 text-lg font-semibold text-[#1F1612] focus:border-[#4A2511] focus:outline-none"
-              />
+              <div className="flex gap-2">
+                <input
+                  id="customerName"
+                  type="text"
+                  required
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  placeholder={t("orders.customerNamePlaceholder")}
+                  className="min-h-[56px] min-w-0 flex-1 rounded-2xl border-2 border-[#CBB8A6] bg-[#FFFDF9] px-4 text-lg font-semibold text-[#1F1612] focus:border-[#4A2511] focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => void handlePickFromPhonebook()}
+                  title={t("orders.pickContact")}
+                  aria-label={t("orders.pickContact")}
+                  className="flex min-h-[56px] min-w-[56px] shrink-0 items-center justify-center rounded-2xl border-2 border-[#4A2511] bg-[#FBF4EC] text-[#4A2511] shadow-xs active:scale-95"
+                >
+                  <BookUser className="h-6 w-6" />
+                </button>
+              </div>
+              {contactHint && (
+                <p className="mt-1.5 text-xs font-bold text-[#6E5444]">{contactHint}</p>
+              )}
             </div>
 
             {repeatOrderData && (
@@ -767,6 +832,49 @@ export function OrderFormPage() {
           )}
         </div>
       </form>
+
+      {/* Saved Customers Fallback Modal */}
+      {showSavedPicker && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 sm:items-center">
+          <div className="max-h-[80vh] w-full max-w-lg overflow-y-auto rounded-3xl border-4 border-[#4A2511] bg-white p-5 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[#E7D8C9] pb-3">
+              <h2 className="text-lg font-extrabold text-[#4A2511]">{t("orders.pickContact")}</h2>
+              <button
+                type="button"
+                onClick={() => setShowSavedPicker(false)}
+                className="rounded-xl border-2 border-[#D9C7B8] px-3 py-1.5 text-sm font-extrabold text-[#5C4538]"
+              >
+                {t("common.close")}
+              </button>
+            </div>
+            <div className="mt-3 space-y-2">
+              {savedCustomers.length === 0 ? (
+                <p className="py-6 text-center text-sm font-bold text-[#6E5444]">
+                  {t("customers.empty")}
+                </p>
+              ) : (
+                savedCustomers.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => {
+                      setCustomerName(c.fullName);
+                      setCustomerPhone(c.phone.replace(/^\+91/, ""));
+                      setShowSavedPicker(false);
+                    }}
+                    className="flex w-full items-center justify-between rounded-2xl border border-[#EFE5DB] bg-[#FFFDF9] p-3 text-left active:scale-[0.99]"
+                  >
+                    <div>
+                      <div className="font-extrabold text-[#4A2511]">{c.fullName}</div>
+                      <div className="text-xs font-bold text-[#6E5444]">{c.phone}</div>
+                    </div>
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

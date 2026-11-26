@@ -8,6 +8,7 @@ import {
   handoffConfirmSchema,
   indianPhoneSchema,
   orderInputSchema,
+  paymentInputSchema,
 } from "../../shared/validation";
 import type {
   OwnerOrderDTO,
@@ -910,4 +911,114 @@ ordersRoutes.patch("/:id", requireRole("admin", "owner"), async (c) => {
   });
 
   return c.json({ ok: true, orderId, orderNumber: existing.order_number });
+});
+
+/**
+ * POST /api/orders/:id/payments
+ * Record a partial or full payment on an order (Owner / Admin only).
+ */
+ordersRoutes.post("/:id/payments", requireRole("admin", "owner"), async (c) => {
+  const user = c.get("user");
+  const orderId = c.req.param("id");
+  const body = await c.req.json().catch(() => null);
+  const parsed = paymentInputSchema.safeParse(body);
+  if (!parsed.success) {
+    return c.json({ error: parsed.error.issues[0]?.message ?? "Invalid payment data" }, 400);
+  }
+
+  const adminClient = createAdminClient(c.env);
+  const { data: order, error: ordErr } = await adminClient
+    .from("orders")
+    .select("id, order_number, status")
+    .eq("id", orderId)
+    .is("deleted_at", null)
+    .maybeSingle();
+
+  if (ordErr || !order) {
+    return c.json({ error: "Order not found" }, 404);
+  }
+  if (order.status === "cancelled") {
+    return c.json({ error: "Cannot record payment on a cancelled order" }, 400);
+  }
+
+  const { amountPaise, paymentMode, paymentDate, isAdvance } = parsed.data;
+  const { data: payment, error: payErr } = await adminClient
+    .from("order_payments")
+    .insert({
+      order_id: orderId,
+      amount_paise: amountPaise,
+      payment_mode: paymentMode,
+      payment_date: paymentDate ?? getTodayIST(),
+      is_advance: isAdvance,
+      recorded_by: user.id,
+    })
+    .select("id")
+    .single();
+
+  if (payErr || !payment) {
+    return c.json({ error: "Failed to record payment" }, 500);
+  }
+
+  await writeAuditLog(adminClient, {
+    actorId: user.id,
+    actorUsername: user.username,
+    actorRole: user.role,
+    action: "payment_recorded",
+    targetType: "order",
+    targetId: orderId,
+    metadata: {
+      order_number: order.order_number,
+      payment_id: payment.id,
+      amount_paise: amountPaise,
+      payment_mode: paymentMode,
+    },
+  });
+
+  return c.json({ ok: true, paymentId: payment.id });
+});
+
+/**
+ * POST /api/orders/:id/payments/:paymentId/void
+ * Void a payment (Owner / Admin only, audit-logged).
+ */
+ordersRoutes.post("/:id/payments/:paymentId/void", requireRole("admin", "owner"), async (c) => {
+  const user = c.get("user");
+  const orderId = c.req.param("id");
+  const paymentId = c.req.param("paymentId");
+  const body = (await c.req.json().catch(() => null)) as { reason?: string } | null;
+  const reason = (body?.reason ?? "owner_voided").trim().slice(0, 200);
+
+  const adminClient = createAdminClient(c.env);
+  const { data: updated, error } = await adminClient
+    .from("order_payments")
+    .update({
+      voided_at: new Date().toISOString(),
+      voided_by: user.id,
+      void_reason: reason,
+    })
+    .eq("id", paymentId)
+    .eq("order_id", orderId)
+    .is("voided_at", null)
+    .select("id, amount_paise")
+    .maybeSingle();
+
+  if (error || !updated) {
+    return c.json({ error: "Payment not found or already voided" }, 404);
+  }
+
+  await writeAuditLog(adminClient, {
+    actorId: user.id,
+    actorUsername: user.username,
+    actorRole: user.role,
+    action: "payment_voided",
+    targetType: "payment",
+    targetId: paymentId,
+    metadata: {
+      order_id: orderId,
+      amount_paise: updated.amount_paise,
+      reason,
+    },
+  });
+
+  return c.json({ ok: true });
 });

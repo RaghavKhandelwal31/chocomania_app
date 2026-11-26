@@ -70,7 +70,39 @@
     "textSize": "अक्षर का साइज",
     "textNormal": "अ",
     "textLarge": "अ+",
-    "noOrdersYet": "अभी कोई ऑर्डर इंतज़ार में नहीं है।"
+    "noOrdersYet": "अभी कोई ऑर्डर इंतज़ार में नहीं है।",
+    "statToday": "आज के ऑर्डर",
+    "statWorkshop": "वर्कशॉप में",
+    "statReady": "देने के लिए तैयार",
+    "statDues": "कुल बकाया",
+    "readySectionTitle": "देने के लिए तैयार",
+    "todaySectionTitle": "आज का शेड्यूल",
+    "viewAll": "सभी देखें",
+    "noTodayOrders": "आज के लिए कोई ऑर्डर नहीं है।"
+  },
+  "customers": {
+    "title": "ग्राहक",
+    "subtitle": "ग्राहक खोजें, पुराने ऑर्डर, बकाया और नोट्स देखें।",
+    "searchPlaceholder": "नाम या फोन नंबर से खोजें...",
+    "empty": "कोई ग्राहक नहीं मिला।",
+    "ordersCount": "{{count}} ऑर्डर",
+    "spent": "कुल खर्च",
+    "privateNotes": "बेकरी के निजी नोट्स",
+    "notesPlaceholder": "ग्राहक की पसंद या खास बात लिखें...",
+    "notesSaved": "नोट्स सेव हो गए!",
+    "orderHistory": "ऑर्डर का इतिहास",
+    "notFound": "ग्राहक नहीं मिला।"
+  },
+  "dues": {
+    "totalOutstanding": "कुल बकाया रकम",
+    "ordersPending": "{{count}} ऑर्डर में पैसा बाकी है",
+    "allClear": "सब चुकता! अभी कोई बकाया नहीं है।",
+    "recordPayment": "पेमेंट जोड़ें"
+  },
+  "reports": {
+    "orderValue": "कुल ऑर्डर मूल्य (रद्द छोड़कर)",
+    "moneyCollected": "कुल जमा रकम",
+    "comingPhase6": "साप्ताहिक और मासिक चार्ट, टॉप आइटम और CSV एक्सपोर्ट फेज़ 6 में जुड़ेंगे।"
   },
   "orders": {
     "newOrderTitle": "नया केक / चॉकलेट ऑर्डर",
@@ -80,6 +112,8 @@
     "customerPhonePlaceholder": "जैसे: 9876543210",
     "customerName": "ग्राहक का नाम",
     "customerNamePlaceholder": "जैसे: प्रिया शर्मा",
+    "pickContact": "कॉन्टैक्ट्स से चुनें",
+    "phonebookFallbackHint": "फोन कॉन्टैक्ट पिकर Android Chrome पर काम करता है। नीचे सेव किए गए ग्राहक दिख रहे हैं।",
     "repeatOrderBtn": "पिछला ऑर्डर दोहराएं",
     "orderDetailsSection": "2. केक / सामान की जानकारी",
     "item": "सामान का नाम",

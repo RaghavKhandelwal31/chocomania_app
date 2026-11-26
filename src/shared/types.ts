@@ -176,3 +176,20 @@ export interface OwnerOrderDTO {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface CustomerSummaryDTO {
+  id: string;
+  firstName: string;
+  fullName: string;
+  phone: string;
+  orderCount: number;
+  totalSpentPaise: number;
+  totalPaidPaise: number;
+  duesPaise: number;
+  lastOrderDate: string | null;
+}
+
+export interface CustomerProfileDTO extends CustomerSummaryDTO {
+  notes: string;
+  orders: OwnerOrderDTO[];
+}

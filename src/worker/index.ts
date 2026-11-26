@@ -4,6 +4,7 @@ import { csrfProtectionMiddleware, securityHeadersMiddleware } from "./middlewar
 import { authRoutes } from "./routes/auth";
 import { adminRoutes } from "./routes/admin";
 import { ordersRoutes } from "./routes/orders";
+import { customersRoutes } from "./routes/customers";
 import { createAdminClient } from "./lib/supabase";
 
 const app = new Hono<{ Bindings: WorkerEnv; Variables: AppVariables }>();
@@ -23,6 +24,7 @@ app.get("/api/health", (c) => {
 app.route("/api/auth", authRoutes);
 app.route("/api/admin", adminRoutes);
 app.route("/api/orders", ordersRoutes);
+app.route("/api/customers", customersRoutes);
 
 app.all("/api/*", (c) => c.json({ error: "Not found" }, 404));
 
