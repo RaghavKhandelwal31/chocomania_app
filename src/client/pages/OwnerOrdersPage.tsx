@@ -21,6 +21,7 @@ import {
 import { apiRequest } from "../lib/api";
 import { buildNotifyMessage, buildWhatsappUrl } from "../lib/notify";
 import { HandoffModal } from "../components/HandoffModal";
+import { UpiQrCard } from "../components/UpiQrCard";
 import { formatDateDDMMYYYY, formatINR, formatTime12h } from "../../shared/format";
 import type { OrderStatus, OwnerOrderDTO } from "../../shared/types";
 
@@ -253,12 +254,6 @@ export function OwnerOrdersPage() {
                   <span className="text-base font-extrabold text-[#1F1612]">
                     {order.itemName}
                   </span>
-                  {order.isEggless && (
-                    <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-bold text-emerald-800 border border-emerald-200">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-700" />
-                      {t("orders.egglessYes")}
-                    </span>
-                  )}
                 </div>
                 {(order.sizeWeight || order.flavor) && (
                   <p className="mt-1 text-xs font-bold text-[#6E5444]">
@@ -327,19 +322,30 @@ export function OwnerOrdersPage() {
                   </Link>
 
                   {order.status === "draft" && (
-                    <button
-                      type="button"
-                      disabled={actionInProgress === order.id}
-                      onClick={() => void handleSendToWorkshop(order.id)}
-                      className="flex min-h-[46px] flex-1 items-center justify-center gap-1.5 rounded-xl bg-[#4A2511] px-3 text-sm font-extrabold text-white shadow-sm active:scale-95 disabled:opacity-60"
-                    >
-                      <Send className="h-4 w-4" />
-                      <span>
-                        {actionInProgress === order.id
-                          ? t("orders.submitting")
-                          : t("orders.sendNow")}
-                      </span>
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        disabled={actionInProgress === order.id}
+                        onClick={() => void handleSendToWorkshop(order.id)}
+                        className="flex min-h-[46px] flex-1 items-center justify-center gap-1.5 rounded-xl bg-[#4A2511] px-3 text-sm font-extrabold text-white shadow-sm active:scale-95 disabled:opacity-60"
+                      >
+                        <Send className="h-4 w-4" />
+                        <span>
+                          {actionInProgress === order.id
+                            ? t("orders.submitting")
+                            : t("orders.sendNow")}
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        disabled={actionInProgress === order.id}
+                        onClick={() => void handleMarkCompleted(order.id)}
+                        className="flex min-h-[46px] flex-1 items-center justify-center gap-1.5 rounded-xl bg-emerald-700 px-3 text-sm font-extrabold text-white shadow-sm active:scale-95 disabled:opacity-60"
+                      >
+                        <CheckCircle className="h-4 w-4" />
+                        <span>{t("orders.completeYourself")}</span>
+                      </button>
+                    </>
                   )}
 
                   {order.status === "sent_to_worker" && (
@@ -401,7 +407,7 @@ export function OwnerOrdersPage() {
       {/* Notify Customer Modal */}
       {notifyOrder && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 sm:items-center">
-          <div className="w-full max-w-lg rounded-3xl border-4 border-[#4A2511] bg-white p-6 shadow-2xl">
+          <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl border-4 border-[#4A2511] bg-white p-6 shadow-2xl">
             <h2 className="text-2xl font-black text-[#4A2511]">{t("orders.notifyTitle")}</h2>
             <p className="mt-1 font-bold text-[#6E5444]">
               #{notifyOrder.orderNumber} • {notifyOrder.customerFullName} ({notifyOrder.customerPhone})
@@ -413,6 +419,8 @@ export function OwnerOrdersPage() {
               onChange={(e) => setNotifyMessage(e.target.value)}
               className="mt-4 w-full rounded-2xl border-2 border-[#CBB8A6] bg-[#FFFDF9] p-3 text-sm font-semibold text-[#1F1612] focus:border-[#4A2511] focus:outline-none"
             />
+
+            <UpiQrCard amountPaise={notifyOrder.balanceDuePaise} message={notifyMessage} />
 
             <div className="mt-4 space-y-2.5">
               <a

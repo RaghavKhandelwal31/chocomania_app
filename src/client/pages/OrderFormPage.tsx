@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, BookUser, Calendar, Check, Clock, RotateCcw, Send, Sparkles, XCircle } from "lucide-react";
+import { ArrowLeft, BookUser, Calculator, Calendar, Check, CheckCircle, Clock, RotateCcw, Send, Sparkles, XCircle } from "lucide-react";
 import { apiRequest } from "../lib/api";
+import { PriceCalculatorModal } from "../components/PriceCalculatorModal";
 import { addDaysYYYYMMDD, formatINR, getTodayIST } from "../../shared/format";
 import { normalizeIndianPhone } from "../../shared/validation";
 import type {
@@ -30,6 +31,7 @@ export function OrderFormPage() {
   const [editOrderStatus, setEditOrderStatus] = useState<OrderStatus>("draft");
   const [editOrderVersion, setEditOrderVersion] = useState<number | undefined>(undefined);
   const [existingPaidPaise, setExistingPaidPaise] = useState(0);
+  const [showCalculator, setShowCalculator] = useState(false);
 
   // Form states
   const [customerPhone, setCustomerPhone] = useState("");
@@ -224,7 +226,7 @@ export function OrderFormPage() {
     : Math.round((Number(advancePaidStr) || 0) * 100);
   const balanceDuePaise = Math.max(0, totalPricePaise - advancePaidPaise);
 
-  const handleSubmit = async (sendToWorker: boolean) => {
+  const handleSubmit = async (action: "draft" | "send" | "complete_self") => {
     setError(null);
     if (!customerPhone.trim()) {
       setError(t("orders.customerPhone") + " is required");
@@ -270,20 +272,26 @@ export function OrderFormPage() {
         totalPricePaise,
         advancePaidPaise: isEditMode ? 0 : advancePaidPaise,
         advancePaymentMode,
-        sendToWorker,
+        sendToWorker: action === "send",
         expectedVersion: editOrderVersion,
       };
 
+      let targetOrderId = editOrderId;
       if (isEditMode && editOrderId) {
         await apiRequest(`/api/orders/${editOrderId}`, {
           method: "PATCH",
           body: JSON.stringify(payload),
         });
       } else {
-        await apiRequest<{ orderId: string; orderNumber: number }>("/api/orders", {
+        const created = await apiRequest<{ orderId: string; orderNumber: number }>("/api/orders", {
           method: "POST",
           body: JSON.stringify(payload),
         });
+        targetOrderId = created.orderId;
+      }
+
+      if (action === "complete_self" && targetOrderId) {
+        await apiRequest(`/api/orders/${targetOrderId}/complete`, { method: "POST" });
       }
 
       navigate("/orders");
@@ -712,15 +720,25 @@ export function OrderFormPage() {
                 <label htmlFor="totalPrice" className="mb-1 block text-base font-bold text-[#1F1612]">
                   {t("orders.totalPrice")}
                 </label>
-                <input
-                  id="totalPrice"
-                  type="number"
-                  inputMode="numeric"
-                  value={totalPriceStr}
-                  onChange={(e) => setTotalPriceStr(e.target.value)}
-                  placeholder="0"
-                  className="min-h-[56px] w-full rounded-2xl border-2 border-[#CBB8A6] bg-[#FFFDF9] px-4 text-xl font-extrabold text-[#1F1612] focus:border-[#4A2511] focus:outline-none"
-                />
+                <div className="flex gap-1.5">
+                  <input
+                    id="totalPrice"
+                    type="number"
+                    inputMode="numeric"
+                    value={totalPriceStr}
+                    onChange={(e) => setTotalPriceStr(e.target.value)}
+                    placeholder="0"
+                    className="min-h-[56px] w-full min-w-0 flex-1 rounded-2xl border-2 border-[#CBB8A6] bg-[#FFFDF9] px-4 text-xl font-extrabold text-[#1F1612] focus:border-[#4A2511] focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCalculator(true)}
+                    aria-label={t("orders.calculatorTitle")}
+                    className="flex min-h-[56px] w-[52px] shrink-0 items-center justify-center rounded-2xl border-2 border-[#4A2511] bg-[#FBF4EC] text-[#4A2511] active:scale-95"
+                  >
+                    <Calculator className="h-6 w-6" />
+                  </button>
+                </div>
               </div>
 
               {!isEditMode ? (
@@ -804,7 +822,7 @@ export function OrderFormPage() {
               <button
                 type="button"
                 disabled={submitting}
-                onClick={() => void handleSubmit(true)}
+                onClick={() => void handleSubmit("send")}
                 className="flex min-h-[62px] w-full items-center justify-center gap-3 rounded-2xl bg-[#4A2511] text-xl font-extrabold text-white shadow-md active:scale-[0.99] disabled:opacity-60"
               >
                 <Send className="h-6 w-6" />
@@ -814,7 +832,17 @@ export function OrderFormPage() {
               <button
                 type="button"
                 disabled={submitting}
-                onClick={() => void handleSubmit(false)}
+                onClick={() => void handleSubmit("complete_self")}
+                className="flex min-h-[58px] w-full items-center justify-center gap-2.5 rounded-2xl bg-emerald-700 text-lg font-extrabold text-white shadow-md active:scale-[0.99] disabled:opacity-60"
+              >
+                <CheckCircle className="h-6 w-6" />
+                <span>{t("orders.completeYourself")}</span>
+              </button>
+
+              <button
+                type="button"
+                disabled={submitting}
+                onClick={() => void handleSubmit("draft")}
                 className="flex min-h-[54px] w-full items-center justify-center gap-2 rounded-2xl border-2 border-[#CBB8A6] bg-white text-lg font-bold text-[#4A2511] active:scale-[0.99] disabled:opacity-60"
               >
                 <Check className="h-5 w-5" />
@@ -825,7 +853,7 @@ export function OrderFormPage() {
             <button
               type="button"
               disabled={submitting}
-              onClick={() => void handleSubmit(true)}
+              onClick={() => void handleSubmit("send")}
               className="flex min-h-[62px] w-full items-center justify-center gap-3 rounded-2xl bg-[#4A2511] text-xl font-extrabold text-white shadow-md active:scale-[0.99] disabled:opacity-60"
             >
               <Check className="h-6 w-6" />
@@ -846,6 +874,17 @@ export function OrderFormPage() {
           )}
         </div>
       </form>
+
+      {showCalculator && (
+        <PriceCalculatorModal
+          initialValue={totalPriceStr}
+          onApply={(val) => {
+            setTotalPriceStr(val);
+            setShowCalculator(false);
+          }}
+          onClose={() => setShowCalculator(false)}
+        />
+      )}
 
       {/* Saved Customers Fallback Modal */}
       {showSavedPicker && (

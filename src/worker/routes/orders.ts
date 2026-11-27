@@ -433,8 +433,13 @@ ordersRoutes.post("/:id/complete", requireRole("admin", "owner", "worker"), asyn
     return c.json({ error: "Order not found" }, 404);
   }
 
-  if (order.status !== "sent_to_worker") {
-    return c.json({ error: "Order must be in 'sent_to_worker' status to complete" }, 400);
+  const allowedStatuses =
+    user.role === "owner" || user.role === "admin"
+      ? ["sent_to_worker", "draft"]
+      : ["sent_to_worker"];
+
+  if (!allowedStatuses.includes(order.status as string)) {
+    return c.json({ error: "Order cannot be completed from its current status" }, 400);
   }
 
   const nowIso = new Date().toISOString();

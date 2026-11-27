@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Check, Copy, MessageCircle } from "lucide-react";
 import { buildCustomerDueReminderMessage, buildWhatsappUrl } from "../lib/notify";
+import { UpiQrCard } from "./UpiQrCard";
 
 export function DueReminderModal({
   customerName,
@@ -32,18 +33,20 @@ export function DueReminderModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 sm:items-center">
-      <div className="w-full max-w-lg rounded-3xl border-4 border-[#4A2511] bg-white p-6 shadow-2xl">
+      <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl border-4 border-[#4A2511] bg-white p-6 shadow-2xl">
         <h2 className="text-2xl font-black text-[#4A2511]">{t("customers.reminderTitle")}</h2>
         <p className="mt-1 font-bold text-[#6E5444]">
           {customerName} {customerPhone ? `(${customerPhone})` : ""}
         </p>
 
         <textarea
-          rows={7}
+          rows={6}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           className="mt-4 w-full rounded-2xl border-2 border-[#CBB8A6] bg-[#FFFDF9] p-3 text-sm font-semibold text-[#1F1612] focus:border-[#4A2511] focus:outline-none"
         />
+
+        <UpiQrCard amountPaise={duesPaise} message={message} />
 
         <div className="mt-4 space-y-2.5">
           <a

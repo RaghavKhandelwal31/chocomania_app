@@ -176,12 +176,6 @@ export function WorkerProductionPage() {
                     <span className="text-xl font-extrabold text-[#1F1612]">
                       {order.itemName}
                     </span>
-                    {order.isEggless && (
-                      <span className="inline-flex items-center gap-1 rounded-md border border-emerald-300 bg-emerald-50 px-2 py-0.5 text-xs font-bold text-emerald-800">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-700" />
-                        {t("orders.egglessYes")}
-                      </span>
-                    )}
                   </div>
 
                   {(order.sizeWeight || order.flavor) && (
