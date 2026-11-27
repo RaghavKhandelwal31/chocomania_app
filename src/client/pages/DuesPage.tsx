@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { apiRequest } from "../lib/api";
 import { buildNotifyMessage, buildWhatsappUrl } from "../lib/notify";
+import { UpiQrCard } from "../components/UpiQrCard";
 import { formatDateDDMMYYYY, formatINR } from "../../shared/format";
 import type { OwnerOrderDTO, PaymentMode } from "../../shared/types";
 
@@ -285,18 +286,20 @@ export function DuesPage() {
       {/* Notify Customer Modal */}
       {notifyOrder && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 sm:items-center">
-          <div className="w-full max-w-lg rounded-3xl border-4 border-[#4A2511] bg-white p-6 shadow-2xl">
+          <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl border-4 border-[#4A2511] bg-white p-6 shadow-2xl">
             <h2 className="text-2xl font-black text-[#4A2511]">{t("orders.notifyTitle")}</h2>
             <p className="mt-1 font-bold text-[#6E5444]">
               #{notifyOrder.orderNumber} • {notifyOrder.customerFullName} ({notifyOrder.customerPhone})
             </p>
 
             <textarea
-              rows={6}
+              rows={5}
               value={notifyMessage}
               onChange={(e) => setNotifyMessage(e.target.value)}
               className="mt-4 w-full rounded-2xl border-2 border-[#CBB8A6] bg-[#FFFDF9] p-3 text-sm font-semibold text-[#1F1612] focus:border-[#4A2511] focus:outline-none"
             />
+
+            <UpiQrCard amountPaise={notifyOrder.balanceDuePaise} message={notifyMessage} />
 
             <div className="mt-4 space-y-2.5">
               <a
