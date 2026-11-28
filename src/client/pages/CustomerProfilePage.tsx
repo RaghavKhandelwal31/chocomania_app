@@ -60,9 +60,9 @@ export function CustomerProfilePage() {
         <button
           type="button"
           onClick={() => navigate("/customers")}
-          className="inline-flex min-h-[48px] items-center gap-2 rounded-xl border-2 border-[#D9C7B8] bg-white px-3 py-2 text-base font-bold text-[#4A2511]"
+          className="inline-flex h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl border border-[#D9C7B8] bg-white px-3 text-sm font-bold text-[#4A2511] shadow-2xs active:scale-95"
         >
-          <ArrowLeft className="h-5 w-5" />
+          <ArrowLeft className="h-4 w-4" />
           <span>{t("common.back")}</span>
         </button>
         <p className="text-center font-bold text-[#6E5444]">{t("customers.notFound")}</p>
@@ -71,22 +71,22 @@ export function CustomerProfilePage() {
   }
 
   return (
-    <div className="space-y-5 pb-12 text-[#1F1612]">
-      <div className="flex items-center justify-between">
+    <div className="space-y-5 pb-4 text-[#1F1612]">
+      <div className="flex items-center justify-between gap-3">
         <button
           type="button"
           onClick={() => navigate("/customers")}
-          className="inline-flex min-h-[48px] items-center gap-2 rounded-xl border-2 border-[#D9C7B8] bg-white px-3 py-2 text-base font-bold text-[#4A2511] active:scale-95"
+          className="inline-flex h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl border border-[#D9C7B8] bg-white px-3 text-sm font-bold text-[#4A2511] shadow-2xs active:scale-95"
         >
-          <ArrowLeft className="h-5 w-5" />
+          <ArrowLeft className="h-4 w-4" />
           <span>{t("common.back")}</span>
         </button>
         {customer.phone && (
           <a
             href={`tel:${customer.phone}`}
-            className="inline-flex min-h-[48px] items-center gap-2 rounded-xl bg-emerald-700 px-4 text-base font-extrabold text-white shadow-xs active:scale-95"
+            className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl bg-emerald-700 px-3.5 text-sm font-extrabold text-white shadow-xs active:scale-95"
           >
-            <Phone className="h-5 w-5" />
+            <Phone className="h-4 w-4" />
             <span>{t("orders.call")}</span>
           </a>
         )}

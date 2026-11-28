@@ -1,9 +1,29 @@
 @import "tailwindcss";
 
+:root {
+  --bg-cream: #fbf7f1;
+  --surface-card: #ffffff;
+  --surface-well: #f4ece1;
+  --choco-deep: #34180b;
+  --choco-primary: #4a2511;
+  --choco-soft: #6e5444;
+  --caramel-accent: #b45309;
+  --border-warm: #e5d7c6;
+  --border-input: #cbb8a6;
+  --ink-primary: #1f1612;
+}
+
 @layer base {
   html {
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: "Plus Jakarta Sans", "Noto Sans Devanagari", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     -webkit-tap-highlight-color: transparent;
+    background-color: var(--bg-cream);
+    color: var(--ink-primary);
+  }
+
+  body {
+    background-color: var(--bg-cream);
+    background-image: radial-gradient(circle at 15% 0%, rgba(180, 83, 9, 0.05) 0%, transparent 45%);
   }
 
   button,
@@ -15,12 +35,17 @@
   }
 }
 
+.font-display {
+  font-family: "Fraunces", "Noto Sans Devanagari", Georgia, serif;
+}
+
 @media print {
   .no-print {
     display: none !important;
   }
   body {
     background: #ffffff !important;
+    background-image: none !important;
     color: #000000 !important;
   }
 }

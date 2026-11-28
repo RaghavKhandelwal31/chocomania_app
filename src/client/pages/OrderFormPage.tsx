@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, BookUser, Calculator, Calendar, Check, CheckCircle, Clock, RotateCcw, Send, Sparkles, XCircle } from "lucide-react";
+import { ArrowLeft, BookUser, Calculator, Calendar, Check, Clock, RotateCcw, Send, Sparkles, UserCheck, XCircle } from "lucide-react";
 import { apiRequest } from "../lib/api";
 import { PriceCalculatorModal } from "../components/PriceCalculatorModal";
 import { addDaysYYYYMMDD, formatINR, getTodayIST } from "../../shared/format";
@@ -207,7 +207,7 @@ export function OrderFormPage() {
     } else {
       setRepeatOrderData(null);
     }
-  }, [customerPhone]);
+  }, [customerPhone, isEditMode]);
 
   const handleRepeatOrder = () => {
     if (!repeatOrderData) return;
@@ -226,7 +226,7 @@ export function OrderFormPage() {
     : Math.round((Number(advancePaidStr) || 0) * 100);
   const balanceDuePaise = Math.max(0, totalPricePaise - advancePaidPaise);
 
-  const handleSubmit = async (action: "draft" | "send" | "complete_self") => {
+  const handleSubmit = async (action: "send" | "send_self") => {
     setError(null);
     if (!customerPhone.trim()) {
       setError(t("orders.customerPhone") + " is required");
@@ -276,22 +276,16 @@ export function OrderFormPage() {
         expectedVersion: editOrderVersion,
       };
 
-      let targetOrderId = editOrderId;
       if (isEditMode && editOrderId) {
         await apiRequest(`/api/orders/${editOrderId}`, {
           method: "PATCH",
           body: JSON.stringify(payload),
         });
       } else {
-        const created = await apiRequest<{ orderId: string; orderNumber: number }>("/api/orders", {
+        await apiRequest<{ orderId: string; orderNumber: number }>("/api/orders", {
           method: "POST",
           body: JSON.stringify(payload),
         });
-        targetOrderId = created.orderId;
-      }
-
-      if (action === "complete_self" && targetOrderId) {
-        await apiRequest(`/api/orders/${targetOrderId}/complete`, { method: "POST" });
       }
 
       navigate("/orders");
@@ -322,18 +316,18 @@ export function OrderFormPage() {
   }
 
   return (
-    <div className="pb-16 text-[#1F1612]">
+    <div className="pb-4 text-[#1F1612]">
       {/* Header bar */}
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-5 space-y-2.5">
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="inline-flex min-h-[48px] items-center gap-2 rounded-xl border-2 border-[#D9C7B8] bg-white px-3 py-2 text-base font-bold text-[#4A2511] active:scale-95"
+          className="inline-flex h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl border border-[#D9C7B8] bg-white px-3 text-sm font-bold text-[#4A2511] shadow-2xs transition active:scale-95"
         >
-          <ArrowLeft className="h-5 w-5" />
+          <ArrowLeft className="h-4 w-4" />
           <span>{t("common.back")}</span>
         </button>
-        <h1 className="text-xl font-extrabold text-[#4A2511]">
+        <h1 className="font-display text-2xl font-extrabold tracking-tight text-[#4A2511]">
           {isEditMode
             ? t("orders.editOrderTitle", { number: editOrderNumber ?? "" })
             : t("orders.newOrderTitle")}
@@ -351,8 +345,8 @@ export function OrderFormPage() {
 
       <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
         {/* Section 1: Customer */}
-        <div className="rounded-3xl border-2 border-[#E7D8C9] bg-white p-5 shadow-sm">
-          <h2 className="text-lg font-extrabold text-[#4A2511]">{t("orders.customerSection")}</h2>
+        <div className="rounded-3xl border border-[#E5D7C6] bg-white p-5 shadow-2xs">
+          <h2 className="font-display text-lg font-extrabold text-[#4A2511]">{t("orders.customerSection")}</h2>
 
           <div className="mt-4 space-y-4">
             <div>
@@ -438,8 +432,8 @@ export function OrderFormPage() {
         </div>
 
         {/* Section 2: Cake / Item Details */}
-        <div className="rounded-3xl border-2 border-[#E7D8C9] bg-white p-5 shadow-sm">
-          <h2 className="text-lg font-extrabold text-[#4A2511]">{t("orders.orderDetailsSection")}</h2>
+        <div className="rounded-3xl border border-[#E5D7C6] bg-white p-5 shadow-2xs">
+          <h2 className="font-display text-lg font-extrabold text-[#4A2511]">{t("orders.orderDetailsSection")}</h2>
 
           <div className="mt-4 space-y-4">
             <div>
@@ -573,8 +567,8 @@ export function OrderFormPage() {
         </div>
 
         {/* Section 3: Schedule & Delivery */}
-        <div className="rounded-3xl border-2 border-[#E7D8C9] bg-white p-5 shadow-sm">
-          <h2 className="text-lg font-extrabold text-[#4A2511]">{t("orders.scheduleSection")}</h2>
+        <div className="rounded-3xl border border-[#E5D7C6] bg-white p-5 shadow-2xs">
+          <h2 className="font-display text-lg font-extrabold text-[#4A2511]">{t("orders.scheduleSection")}</h2>
 
           <div className="mt-4 space-y-4">
             {/* Date Quick picks */}
@@ -711,8 +705,8 @@ export function OrderFormPage() {
         </div>
 
         {/* Section 4: Pricing & Advance (Owner only) */}
-        <div className="rounded-3xl border-2 border-[#E7D8C9] bg-white p-5 shadow-sm">
-          <h2 className="text-lg font-extrabold text-[#4A2511]">{t("orders.pricingSection")}</h2>
+        <div className="rounded-3xl border border-[#E5D7C6] bg-white p-5 shadow-2xs">
+          <h2 className="font-display text-lg font-extrabold text-[#4A2511]">{t("orders.pricingSection")}</h2>
 
           <div className="mt-4 space-y-4">
             <div className="grid grid-cols-2 gap-3">
@@ -823,40 +817,40 @@ export function OrderFormPage() {
                 type="button"
                 disabled={submitting}
                 onClick={() => void handleSubmit("send")}
-                className="flex min-h-[62px] w-full items-center justify-center gap-3 rounded-2xl bg-[#4A2511] text-xl font-extrabold text-white shadow-md active:scale-[0.99] disabled:opacity-60"
+                className="flex min-h-[60px] w-full items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-b from-[#5B2E16] to-[#4A2511] text-lg font-extrabold text-white shadow-md transition active:scale-[0.99] disabled:opacity-60"
               >
-                <Send className="h-6 w-6" />
+                <Send className="h-5 w-5" />
                 <span>{submitting ? t("orders.submitting") : t("orders.sendToWorkshop")}</span>
               </button>
 
               <button
                 type="button"
                 disabled={submitting}
-                onClick={() => void handleSubmit("complete_self")}
-                className="flex min-h-[58px] w-full items-center justify-center gap-2.5 rounded-2xl bg-emerald-700 text-lg font-extrabold text-white shadow-md active:scale-[0.99] disabled:opacity-60"
+                onClick={() => void handleSubmit("send_self")}
+                className="flex min-h-[56px] w-full items-center justify-center gap-2.5 rounded-2xl border-2 border-[#4A2511] bg-[#FFF8EC] text-lg font-extrabold text-[#4A2511] shadow-xs transition active:scale-[0.99] disabled:opacity-60"
               >
-                <CheckCircle className="h-6 w-6" />
-                <span>{t("orders.completeYourself")}</span>
+                <UserCheck className="h-5 w-5" />
+                <span>
+                  {submitting
+                    ? t("orders.submitting")
+                    : isEditMode
+                      ? t("orders.saveKeepWithSelf")
+                      : t("orders.sendToSelf")}
+                </span>
               </button>
 
-              <button
-                type="button"
-                disabled={submitting}
-                onClick={() => void handleSubmit("draft")}
-                className="flex min-h-[54px] w-full items-center justify-center gap-2 rounded-2xl border-2 border-[#CBB8A6] bg-white text-lg font-bold text-[#4A2511] active:scale-[0.99] disabled:opacity-60"
-              >
-                <Check className="h-5 w-5" />
-                <span>{t("orders.saveDraft")}</span>
-              </button>
+              <p className="px-1 text-center text-xs font-semibold text-[#6E5444]">
+                {t("orders.dispatchHint")}
+              </p>
             </>
           ) : (
             <button
               type="button"
               disabled={submitting}
               onClick={() => void handleSubmit("send")}
-              className="flex min-h-[62px] w-full items-center justify-center gap-3 rounded-2xl bg-[#4A2511] text-xl font-extrabold text-white shadow-md active:scale-[0.99] disabled:opacity-60"
+              className="flex min-h-[60px] w-full items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-b from-[#5B2E16] to-[#4A2511] text-lg font-extrabold text-white shadow-md transition active:scale-[0.99] disabled:opacity-60"
             >
-              <Check className="h-6 w-6" />
+              <Check className="h-5 w-5" />
               <span>{submitting ? t("orders.submitting") : t("orders.saveChanges")}</span>
             </button>
           )}

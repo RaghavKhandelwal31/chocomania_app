@@ -359,6 +359,7 @@ ordersRoutes.post("/", requireRole("admin", "owner"), async (c) => {
     metadata: {
       order_number: orderRow.order_number,
       sent_to_worker: isSent,
+      assigned_to: isSent ? "baker" : "owner",
       total_price_paise: data.totalPricePaise,
     },
   });

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   Bell,
@@ -15,6 +15,7 @@ import {
   Phone,
   Plus,
   RotateCcw,
+  Search,
   Send,
   ShoppingBag,
 } from "lucide-react";
@@ -26,14 +27,37 @@ import { formatDateDDMMYYYY, formatINR, formatTime12h } from "../../shared/forma
 import type { OrderStatus, OwnerOrderDTO } from "../../shared/types";
 
 type FilterTab = "all" | "draft" | "sent_to_worker" | "completed" | "handed_off";
+const VALID_FILTERS = new Set<FilterTab>(["all", "draft", "sent_to_worker", "completed", "handed_off"]);
 
 export function OwnerOrdersPage() {
   const { t } = useTranslation();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialParam = searchParams.get("filter") as FilterTab | null;
 
   const [orders, setOrders] = useState<OwnerOrderDTO[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<FilterTab>("all");
+  const [filter, setFilter] = useState<FilterTab>(
+    initialParam && VALID_FILTERS.has(initialParam) ? initialParam : "all",
+  );
+  const [query, setQuery] = useState("");
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
+
+  // Sync filter if URL query param changes
+  useEffect(() => {
+    const param = searchParams.get("filter") as FilterTab | null;
+    if (param && VALID_FILTERS.has(param)) {
+      setFilter(param);
+    }
+  }, [searchParams]);
+
+  const handleSelectFilter = (next: FilterTab) => {
+    setFilter(next);
+    if (next === "all") {
+      setSearchParams({});
+    } else {
+      setSearchParams({ filter: next });
+    }
+  };
 
   // Handoff modal state
   const [handoffOrder, setHandoffOrder] = useState<OwnerOrderDTO | null>(null);
@@ -110,16 +134,29 @@ export function OwnerOrdersPage() {
     }
   };
 
+  const trimmedQuery = query.trim().toLowerCase();
   const filteredOrders = orders.filter((o) => {
-    if (filter === "all") return true;
-    return o.status === filter;
+    if (filter !== "all" && o.status !== filter) return false;
+    if (!trimmedQuery) return true;
+    const orderNumStr = `#${o.orderNumber}`;
+    return (
+      orderNumStr.includes(trimmedQuery) ||
+      String(o.orderNumber).includes(trimmedQuery) ||
+      o.customerFullName.toLowerCase().includes(trimmedQuery) ||
+      o.customerPhone.toLowerCase().includes(trimmedQuery) ||
+      o.itemName.toLowerCase().includes(trimmedQuery) ||
+      o.flavor.toLowerCase().includes(trimmedQuery)
+    );
   });
+
+  const countForTab = (tabKey: FilterTab) =>
+    tabKey === "all" ? orders.length : orders.filter((o) => o.status === tabKey).length;
 
   const getStatusBadge = (status: OrderStatus) => {
     switch (status) {
       case "draft":
         return (
-          <span className="rounded-xl border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs font-extrabold text-amber-800">
+          <span className="rounded-xl border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs font-extrabold text-amber-900">
             {t("orders.statusDraft")}
           </span>
         );
@@ -151,15 +188,27 @@ export function OwnerOrdersPage() {
   };
 
   return (
-    <div className="space-y-4 pb-12 text-[#1F1612]">
+    <div className="space-y-4 pb-4 text-[#1F1612]">
       {/* Primary "New Order" Button */}
       <Link
         to="/orders/new"
-        className="flex min-h-[60px] w-full items-center justify-center gap-2 rounded-2xl bg-[#4A2511] text-xl font-extrabold text-white shadow-md active:scale-[0.99]"
+        className="flex min-h-[58px] w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-b from-[#5B2E16] to-[#4A2511] text-lg font-extrabold text-white shadow-md transition active:scale-[0.99]"
       >
-        <Plus className="h-6 w-6" />
+        <Plus className="h-5 w-5" />
         <span>{t("home.newOrder")}</span>
       </Link>
+
+      {/* Search Bar */}
+      <div className="relative">
+        <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6E5444]" />
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={t("orders.searchPlaceholder")}
+          className="h-11 w-full rounded-2xl border border-[#D9C7B8] bg-white pl-10 pr-4 text-sm font-semibold text-[#1F1612] shadow-2xs focus:border-[#4A2511] focus:outline-none"
+        />
+      </div>
 
       {/* Undo Banner if an order was just handed off */}
       {lastHandoffId && (
@@ -168,7 +217,7 @@ export function OwnerOrdersPage() {
           <button
             type="button"
             onClick={() => void handleUndoHandoff()}
-            className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border-2 border-emerald-700 bg-white px-3 text-sm font-extrabold text-emerald-800 active:scale-95"
+            className="inline-flex h-10 items-center gap-1.5 rounded-xl border-2 border-emerald-700 bg-white px-3 text-sm font-extrabold text-emerald-800 active:scale-95"
           >
             <RotateCcw className="h-4 w-4" />
             <span>Undo</span>
@@ -179,25 +228,35 @@ export function OwnerOrdersPage() {
       {/* Filter Tabs */}
       <div className="flex gap-1.5 overflow-x-auto pb-1 text-xs">
         {[
-          { key: "all", label: t("orders.filterAll") },
-          { key: "sent_to_worker", label: t("orders.filterSent") },
-          { key: "completed", label: t("orders.filterCompleted") },
-          { key: "draft", label: t("orders.filterDraft") },
-          { key: "handed_off", label: t("orders.filterHandedOff") },
-        ].map((tab) => (
-          <button
-            key={tab.key}
-            type="button"
-            onClick={() => setFilter(tab.key as FilterTab)}
-            className={`min-h-[42px] whitespace-nowrap rounded-xl border-2 px-3.5 font-extrabold transition ${
-              filter === tab.key
-                ? "border-[#4A2511] bg-[#4A2511] text-white"
-                : "border-[#D9C7B8] bg-white text-[#5C4538]"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+          { key: "all" as const, label: t("orders.filterAll") },
+          { key: "draft" as const, label: t("orders.filterDraft") },
+          { key: "sent_to_worker" as const, label: t("orders.filterSent") },
+          { key: "completed" as const, label: t("orders.filterCompleted") },
+          { key: "handed_off" as const, label: t("orders.filterHandedOff") },
+        ].map((tab) => {
+          const count = countForTab(tab.key);
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => handleSelectFilter(tab.key)}
+              className={`inline-flex h-10 items-center gap-1.5 whitespace-nowrap rounded-xl border px-3 font-extrabold transition ${
+                filter === tab.key
+                  ? "border-[#4A2511] bg-[#4A2511] text-white shadow-2xs"
+                  : "border-[#D9C7B8] bg-white text-[#5C4538]"
+              }`}
+            >
+              <span>{tab.label}</span>
+              <span
+                className={`rounded-md px-1.5 py-0.5 text-[10px] ${
+                  filter === tab.key ? "bg-white/20 text-white" : "bg-[#F4ECE1] text-[#6E5444]"
+                }`}
+              >
+                {count}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Order List */}
@@ -214,7 +273,7 @@ export function OwnerOrdersPage() {
           {filteredOrders.map((order) => (
             <div
               key={order.id}
-              className="rounded-3xl border-2 border-[#E7D8C9] bg-white p-4 shadow-sm transition hover:border-[#CBB8A6]"
+              className="rounded-3xl border border-[#E5D7C6] bg-white p-4 shadow-2xs transition hover:border-[#CBB8A6]"
             >
               {/* Order header */}
               <div className="flex items-start justify-between gap-2">
@@ -343,7 +402,7 @@ export function OwnerOrdersPage() {
                         className="flex min-h-[46px] flex-1 items-center justify-center gap-1.5 rounded-xl bg-emerald-700 px-3 text-sm font-extrabold text-white shadow-sm active:scale-95 disabled:opacity-60"
                       >
                         <CheckCircle className="h-4 w-4" />
-                        <span>{t("orders.completeYourself")}</span>
+                        <span>{t("orders.markCompleted")}</span>
                       </button>
                     </>
                   )}
