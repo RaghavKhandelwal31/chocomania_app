@@ -27,11 +27,24 @@ export function LanguageToggle() {
 
 export function VersionFooter() {
   const { t } = useTranslation();
-  if (!APP_UPDATED_AT) return null;
 
   return (
     <footer className="no-print mt-8 border-t border-[#E5D7C6]/80 pt-3 text-center text-[11px] font-semibold tracking-wide text-[#8A6D5B]">
-      {t("common.updatedOn", { time: APP_UPDATED_AT })}
+      <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+        <a
+          href="https://chocomania.in/"
+          className="inline-flex items-center gap-1 font-bold text-[#4A2511] underline decoration-[#CBB8A6] underline-offset-4 transition hover:text-[#2F1609] hover:decoration-[#4A2511]"
+        >
+          <span>{t("common.visitWebsite")}</span>
+          <span aria-hidden="true">↗</span>
+        </a>
+        {APP_UPDATED_AT && (
+          <>
+            <span aria-hidden="true">•</span>
+            <span>{t("common.updatedOn", { time: APP_UPDATED_AT })}</span>
+          </>
+        )}
+      </div>
     </footer>
   );
 }

@@ -18,7 +18,8 @@
     "retry": "फिर से कोशिश करें",
     "errorGeneric": "कुछ गड़बड़ हो गई। कृपया फिर से कोशिश करें।",
     "comingNext": "अगले चरण में जुड़ रहा है",
-    "updatedOn": "अपडेट: {{time}}"
+    "updatedOn": "अपडेट: {{time}}",
+    "visitWebsite": "chocomania.in वेबसाइट देखें"
   },
   "auth": {
     "signInTitle": "चोकोमेनिया में लॉग इन करें",

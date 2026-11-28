@@ -18,7 +18,8 @@
     "retry": "Try Again",
     "errorGeneric": "Something went wrong. Please try again.",
     "comingNext": "Coming in the next phase",
-    "updatedOn": "Updated on {{time}}"
+    "updatedOn": "Updated on {{time}}",
+    "visitWebsite": "Visit chocomania.in"
   },
   "auth": {
     "signInTitle": "Sign In to Chocomania",

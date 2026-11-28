@@ -16,6 +16,13 @@
   "env": {
     "test": {
       "name": "chocomania-test",
+      "workers_dev": false,
+      "routes": [
+        {
+          "pattern": "app.chocomania.in",
+          "custom_domain": true
+        }
+      ],
       "vars": {
         "APP_ENV": "test"
       },
